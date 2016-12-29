@@ -1,19 +1,11 @@
-# This Python 3 environment comes with many helpful analytics libraries installed
-# It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
-# For example, here's several helpful packages to load in
 
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+
+import numpy as np
+import pandas as pd
 
 import itertools
 
-# Input data files are available in the "../input/" directory.
-# For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
-from subprocess import check_output
-print(check_output(["ls", "../input"]).decode("utf8"))
-
-# Any results you write to the current directory are saved as output.
 def generate_sample():
     sample = {}
     sample['ball'] = [max(0, 1 + np.random.normal(1,0.3,1)[0]) for i in range(11000)]
@@ -47,8 +39,9 @@ dispatch = {
     "gloves": lambda:3.0 + np.random.rand(1)[0] if np.random.rand(1) < 0.3 else np.random.rand(1)[0]
     }
 
+## The number of gits of each type
 def init_count():
-    count = {
+    return {
         "horse": 1000,
         "ball": 1100,
         "bike": 500,
@@ -59,10 +52,10 @@ def init_count():
         "blocks": 1000,
         "gloves": 200
     }
-    return count
 
+## The max number of gifts of a certain type to put in a bag
 def init_limit():
-    limit = {
+    return {
         "horse": 6,
         "ball": 8,
         "bike": 2,
@@ -73,15 +66,21 @@ def init_limit():
         "blocks": 3,
         "gloves": 4
     }
-    return limit
-
+'''
+This function yields a generator containing all the different possible combinations possible in a bag for a
+given gift type combination and number of gifts.
+params:
+    a: combination of gifts: e.g. (horse, ball), etc.
+    n: Number of different types of gifts in the combination passed
+    k: The number of gifts required in bag
+'''
 def combination_generator(a, n, k):
     if n > k: yield None
-    elif n ==0: yield []
+    elif n == 0: yield [] #This will never happen as per the parameters passed
     elif n == 1: yield a*k
     elif n == 2:
         for i in range(k-1): yield [a[0]]*(1+i) + [a[1]]*(k-i-1)
-    elif k == 3: yield [a[0], a[1], a[2]]
+    elif k == 3: yield [a[0], a[1], a[2]] ## When there are 3 gifts in the combination and 3 gifts required in the bag
     else:
         generator = itertools.chain(
             combination_generator(a,n,k-2),
@@ -90,7 +89,12 @@ def combination_generator(a, n, k):
             combination_generator(a[1:-1],n-2,k-2) )
         for iter in generator:
             if iter is not None: yield [a[0]] + iter + [a[-1]]
-
+'''
+This function returns the average weight for a given combination of gifts to fill the bag.
+params:
+    lst: list containing the names of the gifts.
+    n: default value fixed to 1
+'''
 def simulator(lst, n):
     s = 0
     for i in range(10000):
@@ -103,14 +107,24 @@ def simulator(lst, n):
                 total_w += w
         s += total_w
     return s*1.0/10000
-
+'''
+params:
+    n: The number of gifts required in the combination.
+    lst_candidate: The types of gifts with quantity left > 0
+    limit: The limit for each type of Gift TODO
+    thres1: The threshold based on the number of types of gifts in lst_candidate
+    thres2: The threshold based on the number of types of gifts in lst_candidate
+'''
 def simulator_wrapper(n, lst_candidate, limit, thres1=50, thres2=30):
     max_w = -1
     best_comb = None
     cnt = 0
     for i in range(1,n+1):
         for lst in itertools.combinations(lst_candidate, i):
+            ## lst is a possible combination of gift to fill the bag
             for iter in combination_generator(list(lst), i, n):
+                ## iter is a list of gifts for a bag for the given combination
+                ## Calculating the 25 percentile and 75 percentile weights over the combination returned
                 w1 = sum([percentile25[cate] for cate in iter])
                 w2 = sum([percentile75[cate] for cate in iter])
                 flag = True
@@ -133,11 +147,13 @@ f_out = open('submission.csv', 'w')
 f_out.write('Gifts\n')
 count = init_count()
 shuffle_map = {}
+## Creating a random set of the gift samples
 for k,v in count.items():
     shuffle_map[k] = np.random.permutation(np.arange(v))
 limit = init_limit()
 n_bags = 0
 w_bags = 0
+## The upper anf lower limit of weights to fill in a bag if certain number of gifts are remaining
 thres1 = {9:50, 8:50, 7:50, 6:50, 5:50, 4:100, 3:100, 2:100}
 thres2 = {9:30, 8:25, 7:20, 6:20, 5:15, 4:10, 3:5, 2:5}
 
@@ -146,6 +162,7 @@ while n_bags < 1000:
     print('Searching from',lst_candidate)
     max_w = -1
     best_comb = None
+    # The range specifies the lower and upper limit of gits in a bag
     for i in range(3,10):
         _, w, comb = simulator_wrapper(i, lst_candidate, limit, thres1[len(lst_candidate)], thres2[len(lst_candidate)])
         if w > max_w:
