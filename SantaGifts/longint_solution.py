@@ -8,15 +8,15 @@ import itertools
 
 def generate_sample():
     sample = {}
-    sample['ball'] = [max(0, 1 + np.random.normal(1,0.3,1)[0]) for i in range(11000)]
-    sample['bike'] = [max(0, np.random.normal(20,10,1)[0]) for i in range(5000)]
-    sample['blocks'] = [np.random.triangular(5,10,20,1)[0] for i in range(10000)]
-    sample['book'] = [np.random.chisquare(2,1)[0] for i in range(12000)]
-    sample['coal'] = [47 * np.random.beta(0.5,0.5,1)[0] for i in range(1660)]
-    sample['doll'] = [np.random.gamma(5,1,1)[0] for i in range(10000)]
-    sample['gloves'] = [3.0 + np.random.rand(1)[0] if np.random.rand(1) < 0.3 else np.random.rand(1)[0] for i in range(2000)]
-    sample['horse'] = [max(0, np.random.normal(5,2,1)[0]) for i in range(10000)]
-    sample['train'] = [max(0, np.random.normal(10,5,1)[0]) for i in range(10000)]
+    sample['ball'] = [max(0, 1 + np.random.normal(1,0.3,1)[0]) for i in range(1000000)]
+    sample['bike'] = [max(0, np.random.normal(20,10,1)[0]) for i in range(1000000)]
+    sample['blocks'] = [np.random.triangular(5,10,20,1)[0] for i in range(1000000)]
+    sample['book'] = [np.random.chisquare(2,1)[0] for i in range(1000000)]
+    sample['coal'] = [47 * np.random.beta(0.5,0.5,1)[0] for i in range(1000000)]
+    sample['doll'] = [np.random.gamma(5,1,1)[0] for i in range(1000000)]
+    sample['gloves'] = [3.0 + np.random.rand(1)[0] if np.random.rand(1) < 0.3 else np.random.rand(1)[0] for i in range(1000000)]
+    sample['horse'] = [max(0, np.random.normal(5,2,1)[0]) for i in range(1000000)]
+    sample['train'] = [max(0, np.random.normal(10,5,1)[0]) for i in range(1000000)]
     return sample
 
 lst_all = ['horse', 'ball','train', 'book', 'doll', 'blocks', 'gloves', 'coal', 'bike']
@@ -97,7 +97,8 @@ params:
 '''
 def simulator(lst, n):
     s = 0
-    for i in range(10000):
+    samples = 100000
+    for i in range(samples):
         total_w = 0
         for i in range(n):
             w = 0
@@ -106,7 +107,7 @@ def simulator(lst, n):
             if w <= 50:
                 total_w += w
         s += total_w
-    return s*1.0/10000
+    return s*1.0/samples
 '''
 params:
     n: The number of gifts required in the combination.
@@ -143,7 +144,7 @@ def simulator_wrapper(n, lst_candidate, limit, thres1=50, thres2=30):
                         best_comb = iter
     return cnt, max_w, best_comb
 
-f_out = open('submission.csv', 'w')
+f_out = open('Outputs/submission_longintSolution.csv', 'w')
 f_out.write('Gifts\n')
 count = init_count()
 shuffle_map = {}
@@ -168,7 +169,7 @@ while n_bags < 1000:
         if w > max_w:
             max_w = w
             best_comb = comb
-            print('\t', w, comb)
+            print('\t ', w, comb)
     if best_comb is None:
         print('None')
         break
