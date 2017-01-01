@@ -113,10 +113,12 @@ params:
 def simulator_wrapper(n, lst_candidate, limit, percentileLower, percentileUpper, thres1=50, thres2=30):
     combs = []
     cnt = 0
+    print(lst_candidate);
     for i in range(1,n+1):
         for lst in itertools.combinations(lst_candidate, i):
             ## lst is a possible combination of gift to fill the bag
             for iter in combination_generator(list(lst), i, n):
+
                 ## iter is a list of gifts for a bag for the given combination
                 ## Calculating the 25 percentile and 75 percentile weights over the combination returned
                 w1 = sum([percentileLower[cate] for cate in iter])
@@ -130,7 +132,6 @@ def simulator_wrapper(n, lst_candidate, limit, percentileLower, percentileUpper,
                     if c[x] > limit[x]:
                         flag = False
                         break
-
                 if flag and w2 <= thres1 and w1 > thres2:
                     cnt += 1
                     w = simulator(iter,1)
@@ -147,7 +148,7 @@ def fillBags(UPValue, LPValue):
         percentileLower[cate] = np.percentile(sample[cate], LPValue)
         percentileUpper[cate] = np.percentile(sample[cate], UPValue)
 
-    f_out = open('Outputs/submission_longintSolution.csv', 'w')
+    f_out = open('Outputs/submission_65_percentile_up.csv', 'w')
     f_out.write('Gifts\n')
     count = init_count()
     shuffle_map = {}
@@ -165,14 +166,14 @@ def fillBags(UPValue, LPValue):
     lst_candidate = [x for x in lst_all if count[x] > 0]
     combos = []
     # The range specifies the lower and upper limit of gits in a bag
-    for i in range(3,20):
+    for i in range(3,15):
         c, combs = simulator_wrapper(i, lst_candidate, count, percentileLower,
                                   percentileUpper, thres1[len(lst_candidate)],
                                   thres2[len(lst_candidate)]
                                   );
-        print ('Ran a total of %s for %s # of gifts' % (c, i) );
-        combos.append(comb);
-
+        print ('Got a total of %s combinations for %s # of gifts' % (c, i) );
+        for com in combs:
+            combos.append(com);
     combos = sorted(combos, key = lambda x: x['weight'], reverse = True);
     while n_bags < 1000:
 
@@ -198,13 +199,12 @@ def fillBags(UPValue, LPValue):
                 bag = ' '.join(bag) + '\n'
                 f_out.write(bag)
                 n_bags += 1
-                w_bags += max_w
+                w_bags += best_comb['weight']
             else:
                 break
-            for x, c in count.items():
-                limit[x] = min(count[x], limit[x])
         print('\tn_bags=%s, w_bags=%s' % (n_bags, w_bags))
 
     f_out.close()
-    print('Done')
-fillBags(75, 25);
+    print 'The remaing gifts are', count
+
+fillBags(65, 25);
