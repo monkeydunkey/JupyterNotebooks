@@ -110,7 +110,7 @@ params:
     thres1: The threshold based on the number of types of gifts in lst_candidate
     thres2: The threshold based on the number of types of gifts in lst_candidate
 '''
-def simulator_wrapper(n, lst_candidate, limit, percentileLower, percentileUpper, thres1=50, thres2=30):
+def simulator_wrapper(n, lst_candidate, limit, percentileAvg, thres=50):
     combs = []
     cnt = 0
     print(lst_candidate);
@@ -120,9 +120,8 @@ def simulator_wrapper(n, lst_candidate, limit, percentileLower, percentileUpper,
             for iter in combination_generator(list(lst), i, n):
 
                 ## iter is a list of gifts for a bag for the given combination
-                ## Calculating the 25 percentile and 75 percentile weights over the combination returned
-                w1 = sum([percentileLower[cate] for cate in iter])
-                w2 = sum([percentileUpper[cate] for cate in iter])
+                ## Calculating the average weight for this bag
+                w = sum([percentileAvg[cate] for cate in iter])
                 flag = True
 
                 c = {}
@@ -132,24 +131,29 @@ def simulator_wrapper(n, lst_candidate, limit, percentileLower, percentileUpper,
                     if c[x] > limit[x]:
                         flag = False
                         break
-                if flag and w2 <= thres1 and w1 > thres2:
+                if flag and w <= thres:
                     cnt += 1
-                    w = simulator(iter,1)
+                    ###w = simulator(iter,1)
                     combs.append({'bag': iter, 'weight': w})
     return cnt, combs
 
+def filterBags(percentileUpper, percentileLower, threshUp, threshLow, bags):
+    filtered_bags = []
+    for bag in bags:
+        w_up = sum([percentileUpper[cate] for cate in bag['bag']])
+        w_low = sum([percentileLower[cate] for cate in bag['bag']])
+        if w_up < threshUp and w_low >= threshLow:
+            filtered_bags.append(bag)
+    return filtered_bags;
 
 def fillBags(UPValue, LPValue):
     lst_all = ['horse', 'ball','train', 'book', 'doll', 'blocks', 'gloves', 'coal', 'bike']
     sample = generate_sample()
-    percentileLower = {}
-    percentileUpper = {}
-    for cate in lst_all:
-        percentileLower[cate] = np.percentile(sample[cate], LPValue)
-        percentileUpper[cate] = np.percentile(sample[cate], UPValue)
+    percentileAvg = {}
 
-    f_out = open('Outputs/submission_65_percentile_up.csv', 'w')
-    f_out.write('Gifts\n')
+    for cate in lst_all:
+        percentileAvg[cate] = np.average(sample[cate]);
+
     count = init_count()
     shuffle_map = {}
     ## Creating a random set of the gift samples
@@ -159,52 +163,65 @@ def fillBags(UPValue, LPValue):
     limit = init_limit()
     n_bags = 0
     w_bags = 0
-    ## The upper anf lower limit of weights to fill in a bag if certain number of gifts are remaining
-    thres1 = {9:50, 8:50, 7:50, 6:50, 5:50, 4:100, 3:100, 2:100}
-    thres2 = {9:30, 8:25, 7:20, 6:20, 5:15, 4:10, 3:5, 2:5}
 
     lst_candidate = [x for x in lst_all if count[x] > 0]
     combos = []
     # The range specifies the lower and upper limit of gits in a bag
     for i in range(3,15):
-        c, combs = simulator_wrapper(i, lst_candidate, count, percentileLower,
-                                  percentileUpper, thres1[len(lst_candidate)],
-                                  thres2[len(lst_candidate)]
-                                  );
+        c, combs = simulator_wrapper(i, lst_candidate, count, percentileAvg, 47);
         print ('Got a total of %s combinations for %s # of gifts' % (c, i) );
         for com in combs:
             combos.append(com);
-    combos = sorted(combos, key = lambda x: x['weight'], reverse = True);
-    while n_bags < 1000:
 
-        best_comb = combos[0]['bag']
-        print('Packaging...')
-        while n_bags < 1000:
-            bag = []
-            tmp_count = {}
-            flag = True
-            for x in best_comb:
-                if count[x] - tmp_count.get(x, 0) <= 0:
-                    flag = False
-                    del combos[0]
-                    break
-                else:
-                    tmp_count[x] = tmp_count.get(x, 0) + 1
-                    idx = count[x] - tmp_count[x]
-                    bag.append('%s_%s' % (x, shuffle_map[x][idx]))
-                    #bag.append('%s_%s' % (x, idx))
-            if flag:
-                for x, c in tmp_count.items():
-                    count[x] = count[x] - c
-                bag = ' '.join(bag) + '\n'
-                f_out.write(bag)
-                n_bags += 1
-                w_bags += best_comb['weight']
-            else:
-                break
-        print('\tn_bags=%s, w_bags=%s' % (n_bags, w_bags))
+    for upLimit in UPValue:
+        for lowLimit in LPValue:
+            percentileUpper = {}
+            percentileLower = {}
+            for cate in lst_all:
+                percentileUpper[cate] = np.percentile(sample[cate], upLimit)
+                percentileLower[cate] = np.percentile(sample[cate], lowLimit)
+            filtered_bags = filterBags(percentileUpper, percentileLower, upLimit, lowLimit, combos);
+            filename = 'Tests/submission_up_'+ str(upLimit) +'_low_'+str(lowLimit)+'.csv';
+            f_out = open(filename, 'w')
+            f_out.write('Gifts\n')
+            filtered_bags = sorted(filtered_bags, key = lambda x: x['weight'], reverse = True);
+            print 'Running for UpperLimit', upLimit, 'and lowerLimit', lowLimit, len(filtered_bags);
+            count = init_count();
+            n_bags = 0
+            w_bags = 0
+            while n_bags < 1000:
+                best_comb = filtered_bags[0]
+                ##print('Packaging...', best_comb['bag'])
+                while n_bags < 1000:
+                    bag = []
+                    tmp_count = {}
+                    flag = True
+                    for x in best_comb['bag']:
+                        if count[x] - tmp_count.get(x, 0) <= 0:
+                            flag = False
+                            del filtered_bags[0]
+                            break
+                        else:
+                            tmp_count[x] = tmp_count.get(x, 0) + 1
+                            idx = count[x] - tmp_count[x]
+                            bag.append('%s_%s' % (x, shuffle_map[x][idx]))
+                            #bag.append('%s_%s' % (x, idx))
+                    if flag:
+                        for x, c in tmp_count.items():
+                            count[x] = count[x] - c
+                        bag = ' '.join(bag) + '\n'
+                        f_out.write(bag)
+                        n_bags += 1
+                        w_bags += best_comb['weight']
+                    else:
+                        break
+                ##print('\tn_bags=%s, w_bags=%s' % (n_bags, w_bags))
 
-    f_out.close()
-    print 'The remaing gifts are', count
+            f_out.close()
+            ##print 'The remaing gifts are', count
 
-fillBags(65, 25);
+
+upperLimits = np.linspace(65, 75, 11)
+lowerLimits = np.linspace(20, 25, 6)
+
+fillBags(upperLimits, lowerLimits);
