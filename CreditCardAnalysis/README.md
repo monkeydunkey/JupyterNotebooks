@@ -14,4 +14,4 @@ The dataset has been collected and analysed during a research collaboration of W
 Please cite: Andrea Dal Pozzolo, Olivier Caelen, Reid A. Johnson and Gianluca Bontempi. Calibrating Probability with Undersampling for Unbalanced Classification. In Symposium on Computational Intelligence and Data Mining (CIDM), IEEE, 2015
 
 ## Analysis
-TODO
+The analysis.ipynb notebook contains a basic EDA and a hypothesis test checking whether there is a significant difference in the amount on average spent in fraudulent transaction vs valid transactions.
