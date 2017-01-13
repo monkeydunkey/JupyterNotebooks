@@ -64,7 +64,7 @@ def mungeskewed(train, test, numeric_feats):
 if __name__ == "__main__":
 
     print('\nStarted')
-    directory = 'Data/'
+    directory = '../Data/'
     train = pd.read_csv(directory + 'train.csv')
     test = pd.read_csv(directory + 'test.csv')
     train = train[(train['loss'] <= 40000) & (train.cont7 > 0.1)]

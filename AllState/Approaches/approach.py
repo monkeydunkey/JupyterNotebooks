@@ -12,10 +12,10 @@ from sklearn.metrics import mean_absolute_error
 import xgboost as xgb
 
 
-train = pd.read_csv('Data/train.csv')
+train = pd.read_csv('../Data/train.csv')
 ## Removing high leverage points
 ##train = train[(train['loss'] <= 40000) & (train.cont7 > 0.1)]
-test = pd.read_csv('Data/test.csv')
+test = pd.read_csv('../Data/test.csv')
 
 test['loss'] = np.nan
 joined = pd.concat([train, test])

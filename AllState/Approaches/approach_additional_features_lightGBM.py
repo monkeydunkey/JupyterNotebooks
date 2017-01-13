@@ -58,7 +58,7 @@ def split_cont6(val):
 if __name__ == "__main__":
 
     print('\nStarted')
-    directory = 'Data/'
+    directory = '../Data/'
     train = pd.read_csv(directory + 'train.csv')
     test = pd.read_csv(directory + 'test.csv')
 
