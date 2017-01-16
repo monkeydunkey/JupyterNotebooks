@@ -14,5 +14,12 @@ The dataset has been collected and analysed during a research collaboration of W
 
 Please cite: Andrea Dal Pozzolo, Olivier Caelen, Reid A. Johnson and Gianluca Bontempi. Calibrating Probability with Undersampling for Unbalanced Classification. In Symposium on Computational Intelligence and Data Mining (CIDM), IEEE, 2015
 
-## Analysis
-The analysis.ipynb notebook contains a basic EDA and a hypothesis test checking whether there is a significant difference in the amount on average spent in fraudulent transaction vs valid transactions.
+## Exploratory Analysis
+The [analysis.ipynb](https://github.com/monkeydunkey/JupyterNotebooks/blob/master/CreditCardAnalysis/Analysis.ipynb) notebook contains a basic EDA and multiple hypothesis tests to check for significant differences in patterns between fraudulent transaction and valid transactions. Following were the observations
+
+1. Fraud transaction were evenly spread out throughout the day, especially night so having a boolean feature for night might help
+2. There is on an average a higher amount spent in fradulent transactions but in absolute terms valid transactions have higher transaction value
+3. There are 6 columns - V13, V15, V22, V23, V25, V26 for which there is no difference in values between valid and fraudulent tranasctions
+
+## Feature Engineering and modelling
+Fraud Detection.ipynb contains the feature engineering and statistical modelling part of the analysis. The feature engineering is done based on the properties observed during the Exploratory Analysis. Random Forest was choosed for the prediction task with the parameters tuned using Cross Validation. The accuracy of the model is 0.999542489919 and the AUC ROC is 0.969846433901
