@@ -22,4 +22,4 @@ The [analysis.ipynb](https://github.com/monkeydunkey/JupyterNotebooks/blob/maste
 3. There are 6 columns - V13, V15, V22, V23, V25, V26 for which there is no difference in values between valid and fraudulent tranasctions
 
 ## Feature Engineering and modelling
-Fraud Detection.ipynb contains the feature engineering and statistical modelling part of the analysis. The feature engineering is done based on the properties observed during the Exploratory Analysis. Random Forest was choosed for the prediction task with the parameters tuned using Cross Validation. The accuracy of the model is 0.999542489919 and the AUC ROC is 0.969846433901
+[Fraud Detection.ipynb](https://github.com/monkeydunkey/JupyterNotebooks/blob/master/CreditCardAnalysis/Fraud%20Detection.ipynb) contains the feature engineering and statistical modelling part of the analysis. The feature engineering is done based on the properties observed during the Exploratory Analysis. Random Forest was choosed for the prediction task with the parameters tuned using Cross Validation. The accuracy of the model is 0.999074340068 and the AUC ROC is 0.976120097595
